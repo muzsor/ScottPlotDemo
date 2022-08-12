@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Threading.Tasks;
@@ -8,6 +7,8 @@ using System.Windows.Forms;
 using ScottPlot;
 using ScottPlot.Plottable;
 
+using ScottPlotDemo.Utils;
+
 namespace ScottPlotDemo
 {
     public partial class MainForm : Form
@@ -15,10 +16,18 @@ namespace ScottPlotDemo
         public MainForm()
         {
             InitializeComponent();
-            FormScatterInitialize();
+            FormsPlotScatterInitialize();
             ScatterPlot();
-            FormLiveSignalInitialize();
+            FormsPlotLiveSignalInitialize();
             LiveSignalPlot();
+            FormsPlotHistogramInitialize();
+            HistogramPlot();
+        }
+
+        private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            DataUpdateTimer?.Stop();
+            RenderTimer?.Stop();
         }
 
         #region ScatterPlot
@@ -33,7 +42,10 @@ namespace ScottPlotDemo
 
         private Annotation _annotationTopLeft;
 
-        private void FormScatterInitialize()
+        /// <summary>
+        /// 初始化 FormsPlotScatter。
+        /// </summary>
+        private void FormsPlotScatterInitialize()
         {
             FormsPlotScatter.Plot.Title("ScatterPlot", fontName: Font.Name);
             FormsPlotScatter.Plot.XLabel("Time");
@@ -45,13 +57,6 @@ namespace ScottPlotDemo
         public void ScatterPlot()
         {
             #region Data
-
-            //for (int i = 0; i < FormsPlotScatter.Plot.Palette.Count(); i++)
-            //{
-            //    double[] xs = DataGen.Consecutive(100);
-            //    double[] ys = DataGen.Sin(100, phase: -i * .5 / FormsPlotScatter.Plot.Palette.Count());
-            //    FormsPlotScatter.Plot.AddScatterLines(xs, ys, label: i.ToString(), lineWidth: 3);
-            //}
 
             double[] xs = DataGen.Consecutive(51);
             double[] sin = DataGen.Sin(51);
@@ -65,7 +70,8 @@ namespace ScottPlotDemo
             _hightlightMarker = FormsPlotScatter.Plot.AddMarker(0, 0, MarkerShape.openCircle, 15, Color.Red);
             _hightlightMarker.IsVisible = false;
 
-            FormsPlotScatter.MouseMove += new MouseEventHandler(FormsPlot_MouseMove);
+            FormsPlotScatter.MouseMove += new MouseEventHandler(FormsPlotScatter_MouseMove);
+            FormsPlotScatter.MouseLeave += new EventHandler(FormsPlotScatter_MouseLeave);
 
             #endregion
 
@@ -76,9 +82,7 @@ namespace ScottPlotDemo
             _hline.PositionLabel = true;
             _hline.PositionLabelBackground = _hline.Color;
             _hline.DragEnabled = true;
-
-            string yFormatter(double y) => $"Y={y:F2}";
-            _hline.PositionFormatter = yFormatter;
+            _hline.PositionFormatter = y => $"Y={y:F2}";
 
             #endregion
 
@@ -104,11 +108,16 @@ namespace ScottPlotDemo
             FormsPlotScatter.Refresh();
         }
 
-        private void FormsPlot_MouseMove(object sender, MouseEventArgs e)
+        /// <summary>
+        /// 移動滑鼠時，顯示 Hightlight Marker 的數值。
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void FormsPlotScatter_MouseMove(object sender, MouseEventArgs e)
         {
             // 確定離光標最近的點。
             (double mouseCoordX, double mouseCoordY) = FormsPlotScatter.GetMouseCoordinates();
-            double xyRatio = FormsPlotScatter.Plot.XAxis.Dims.PxPerUnit / FormsPlotLiveSignal.Plot.YAxis.Dims.PxPerUnit;
+            double xyRatio = FormsPlotScatter.Plot.XAxis.Dims.PxPerUnit / FormsPlotScatter.Plot.YAxis.Dims.PxPerUnit;
             // 返回距離給定坐標最近的數據點的位置和索引。
             (double pointX, double pointY, int pointIndex) = _scatterPlot.GetPointNearest(mouseCoordX, mouseCoordY, xyRatio);
 
@@ -130,16 +139,34 @@ namespace ScottPlotDemo
         }
 
         /// <summary>
-        /// 重設圖。
+        /// 滑鼠離開時，隱藏 Hightlight Marker 的數值。
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void FormsPlotScatter_MouseLeave(object sender, EventArgs e)
+        {
+            // 清除 Hightlight Marker 的數值
+            label1.Text = "Closest point to (---, ---) is index --- (---, ---)";
+            _annotationTopLeft.Label = "(---, ---)";
+            // 隱藏 Hightlight Marker。
+            _hightlightMarker.IsVisible = false;
+
+            FormsPlotScatter.Refresh();
+        }
+
+        /// <summary>
+        /// 重設 Scatter 圖。
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
         private void ResetButton_Click(object sender, EventArgs e)
         {
+            // 清除 Hightlight Marker 的數值
             label1.Text = "Closest point to (---, ---) is index --- (---, ---)";
             _annotationTopLeft.Label = "(---, ---)";
-            // 隱藏 Hightlight 點。
+            // 隱藏 Hightlight Marker。
             _hightlightMarker.IsVisible = false;
+
             // Hline 回到原點。
             _hline.DragTo(0.0, 0.0, true);
 
@@ -157,11 +184,7 @@ namespace ScottPlotDemo
 
         private Annotation _annotationTopRight;
 
-        private readonly PerformanceCounter _ramLoad = new PerformanceCounter("Process", "Working Set - Private", Process.GetCurrentProcess().ProcessName);
-
-        private const int MB_DIV = 1024 * 1024;
-
-        public double RamUsage => _ramLoad.NextValue() / MB_DIV;
+        private Crosshair _crosshair;
 
         //private readonly double[] _xPositions = { 0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60 };
 
@@ -238,7 +261,7 @@ namespace ScottPlotDemo
         /// 初始化 FormsPlot。
         /// </summary>
         /// 
-        private void FormLiveSignalInitialize()
+        private void FormsPlotLiveSignalInitialize()
         {
             FormsPlotLiveSignal.Plot.Title("Memory Usage");
             FormsPlotLiveSignal.Plot.XLabel("Time (seconds)");
@@ -273,7 +296,7 @@ namespace ScottPlotDemo
             #region Axis
 
             // 限制 x、y 軸刻度的上、下限。
-            FormsPlotLiveSignal.Plot.SetAxisLimits(xMin: 0, xMax: 60, yMin: 0, yMax: RamUsage * 1.8);
+            FormsPlotLiveSignal.Plot.SetAxisLimits(xMin: 0, xMax: 60, yMin: 0, yMax: AppHepler.RamUasge() * 1.8);
             // 自動設置 x、y 軸的限制，以適應數據。
             FormsPlotLiveSignal.Plot.AxisAuto(0, 0);
 
@@ -304,12 +327,6 @@ namespace ScottPlotDemo
 
         private async void LiveSignalPlot()
         {
-            Closed += (sender, args) =>
-            {
-                DataUpdateTimer?.Stop();
-                RenderTimer?.Stop();
-            };
-
             #region Signal or SignalConst
 
             // Signal 圖具有均勻分佈的 x 點並且渲染速度非常快。
@@ -322,6 +339,21 @@ namespace ScottPlotDemo
             _signalPlot.MarkerShape = MarkerShape.none;
             // 在曲線下方顯示純色填充。
             _signalPlot.FillBelow(color: Color.Red, alpha: 0.65);
+
+            #endregion
+
+            #region Crosshair
+
+            _crosshair = FormsPlotLiveSignal.Plot.AddCrosshair(0, 0);
+            _crosshair.VerticalLine.IsVisible = false;
+            _crosshair.HorizontalLine.Color = Color.Yellow;
+            _crosshair.HorizontalLine.PositionLabelBackground = Color.Yellow;
+            _crosshair.HorizontalLine.PositionLabelFont.Color = Color.Black;
+            FormsPlotLiveSignal_MouseLeave(null, null);
+
+            FormsPlotLiveSignal.MouseEnter += new EventHandler(FormsPlotLiveSignal_MouseEnter);
+            FormsPlotLiveSignal.MouseLeave += new EventHandler(FormsPlotLiveSignal_MouseLeave);
+            FormsPlotLiveSignal.MouseMove += new MouseEventHandler(FormsPlotLiveSignal_MouseMove);
 
             #endregion
 
@@ -346,16 +378,12 @@ namespace ScottPlotDemo
             RenderTimer.Enabled = true;
         }
 
-        private readonly Random _rand = new Random(0);
-
-        public double GetRandomNumber(double minimum, double maximum) => (_rand.NextDouble() * (maximum - minimum)) + minimum;
-
         private void DataUpdateTimer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
             _xAxisTickNow = DateTime.Now;
             // 將整個圖表滾動到左側。
             Array.Copy(_liveData, 1, _liveData, 0, _liveData.Length - 1);
-            _liveData[_liveData.Length - 1] = RamUsage; //GetRandomNumber(24.0, 26.0);            
+            _liveData[_liveData.Length - 1] = AppHepler.RamUasge(); //GetRandomNumber(24.0, 26.0);            
         }
 
         private void RenderTimer_Tick(object sender, EventArgs e)
@@ -367,6 +395,87 @@ namespace ScottPlotDemo
 
             // 阻塞調用執行緒，同步執行。
             FormsPlotLiveSignal.Refresh();
+        }
+
+        #region Crosshair Event
+
+        private void FormsPlotLiveSignal_MouseEnter(object sender, EventArgs e) => _crosshair.IsVisible = true;
+
+        private void FormsPlotLiveSignal_MouseLeave(object sender, EventArgs e)
+        {
+            _crosshair.IsVisible = false;
+            FormsPlotLiveSignal.Refresh();
+        }
+
+        private void FormsPlotLiveSignal_MouseMove(object sender, MouseEventArgs e)
+        {
+            (double coordinateX, double coordinateY) = FormsPlotLiveSignal.GetMouseCoordinates();
+
+            _crosshair.X = coordinateX;
+            _crosshair.Y = coordinateY;
+
+            FormsPlotLiveSignal.Refresh();
+            //FormsPlotLiveSignal.Refresh(lowQuality: true, skipIfCurrentlyRendering: true);
+        }
+
+        #endregion
+
+        #endregion
+
+        #region Histogram
+
+        private LollipopPlot _barPlot;
+
+        private void FormsPlotHistogramInitialize()
+        {
+            // customize the plot style
+            FormsPlotHistogram.Plot.Title("貼合偏移");
+            FormsPlotHistogram.Plot.YAxis.Label("數量");
+            FormsPlotHistogram.Plot.XAxis.Label("偏移量 (mm)");
+
+            // 限制 x、y 軸刻度的上、下限。
+            FormsPlotHistogram.Plot.SetAxisLimits(yMin: 0);
+            // 自動設置 x、y 軸的限制，以適應數據。
+            FormsPlotHistogram.Plot.AxisAuto(0, 0);
+        }
+
+        private void HistogramPlot()
+        {
+            var rand = new Random(65535);
+            double[] values = DataGen.RandomNormal(rand, pointCount: 1000, mean: 0.02, stdDev: 0.01);
+
+            #region HistogramPlot
+
+            (double[] counts, double[] binEdges) =
+                ScottPlot.Statistics.Common.Histogram(
+                    values: values, 
+                    min: values.Min(), 
+                    max: values.Max() + 0.001, 
+                    binSize: 0.001);
+            double[] leftEdges = binEdges.Take(binEdges.Length - 1).ToArray();
+
+            _barPlot = FormsPlotHistogram.Plot.AddLollipop(values: counts, positions: leftEdges);
+            _barPlot.BarWidth = 0.001;
+            _barPlot.ShowValuesAboveBars = true;
+            _barPlot.BorderColor = ColorTranslator.FromHtml("#82add9");
+
+            #endregion
+
+            #region Vline
+
+            VLine vlineMean = FormsPlotHistogram.Plot.AddVerticalLine(x: values.Average(), color: Color.Red, width: 0.5F, style: LineStyle.Solid, label: "平均值");
+            vlineMean.PositionLabelBackground = Color.Red;
+            vlineMean.PositionLabel = true;
+
+            FormsPlotHistogram.Plot.AddVerticalLine(x: values.Min(), color: Color.Gray, width: 0.01F, style: LineStyle.Dash, label: "最小/最大值");
+            FormsPlotHistogram.Plot.AddVerticalLine(x: values.Max(), color: Color.Gray, width: 0.01F, style: LineStyle.Dash);
+
+            #endregion
+
+            FormsPlotHistogram.Plot.Legend(location: Alignment.UpperRight);
+
+            FormsPlotHistogram.Plot.AxisAuto();
+            FormsPlotHistogram.Refresh();
         }
 
         #endregion

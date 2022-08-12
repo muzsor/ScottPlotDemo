@@ -37,6 +37,7 @@
             this.panel1 = new System.Windows.Forms.Panel();
             this.FormsPlotScatter = new ScottPlot.FormsPlot();
             this.ResetButton = new System.Windows.Forms.Button();
+            this.FormsPlotHistogram = new ScottPlot.FormsPlot();
             ((System.ComponentModel.ISupportInitialize)(this.DataUpdateTimer)).BeginInit();
             this.TableLayoutPanel.SuspendLayout();
             this.panel1.SuspendLayout();
@@ -81,6 +82,7 @@
             this.TableLayoutPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
             this.TableLayoutPanel.Controls.Add(this.panel1, 1, 0);
             this.TableLayoutPanel.Controls.Add(this.FormsPlotLiveSignal, 0, 0);
+            this.TableLayoutPanel.Controls.Add(this.FormsPlotHistogram, 0, 1);
             this.TableLayoutPanel.Dock = System.Windows.Forms.DockStyle.Fill;
             this.TableLayoutPanel.Location = new System.Drawing.Point(0, 0);
             this.TableLayoutPanel.Margin = new System.Windows.Forms.Padding(0);
@@ -125,6 +127,15 @@
             this.ResetButton.UseVisualStyleBackColor = true;
             this.ResetButton.Click += new System.EventHandler(this.ResetButton_Click);
             // 
+            // FormsPlotHistogram
+            // 
+            this.FormsPlotHistogram.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.FormsPlotHistogram.Location = new System.Drawing.Point(1, 381);
+            this.FormsPlotHistogram.Margin = new System.Windows.Forms.Padding(0);
+            this.FormsPlotHistogram.Name = "FormsPlotHistogram";
+            this.FormsPlotHistogram.Size = new System.Drawing.Size(490, 379);
+            this.FormsPlotHistogram.TabIndex = 5;
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(10F, 20F);
@@ -133,11 +144,12 @@
             this.Controls.Add(this.TableLayoutPanel);
             this.DoubleBuffered = true;
             this.Font = new System.Drawing.Font("微軟正黑體", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
-            this.Margin = new System.Windows.Forms.Padding(5, 5, 5, 5);
+            this.Margin = new System.Windows.Forms.Padding(5);
             this.MinimumSize = new System.Drawing.Size(1000, 800);
             this.Name = "MainForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "ScottPlotDemo";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainForm_FormClosing);
             ((System.ComponentModel.ISupportInitialize)(this.DataUpdateTimer)).EndInit();
             this.TableLayoutPanel.ResumeLayout(false);
             this.panel1.ResumeLayout(false);
@@ -156,6 +168,7 @@
         private System.Windows.Forms.Panel panel1;
         private ScottPlot.FormsPlot FormsPlotScatter;
         private System.Windows.Forms.Button ResetButton;
+        private ScottPlot.FormsPlot FormsPlotHistogram;
     }
 }
 
