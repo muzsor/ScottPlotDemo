@@ -87,7 +87,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="ScottPlot.WinForms">
-      <Version>4.1.52</Version>
+      <Version>4.1.54</Version>
     </PackageReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
