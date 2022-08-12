@@ -6,6 +6,7 @@ using System.Windows.Forms;
 
 using ScottPlot;
 using ScottPlot.Plottable;
+using ScottPlot.Renderable;
 
 using ScottPlotDemo.Utils;
 
@@ -424,7 +425,9 @@ namespace ScottPlotDemo
 
         #region Histogram
 
-        private LollipopPlot _barPlot;
+        private LollipopPlot _lollipopPlotX;
+
+        private LollipopPlot _lollopopPlotY;
 
         private void FormsPlotHistogramInitialize()
         {
@@ -435,45 +438,94 @@ namespace ScottPlotDemo
 
         private void HistogramPlot()
         {
-            double[] values = { 0.038, -0.025, 0.039, 0.036, 0.037, 0.034, 0.042, 0.024, 0.026, 0.1, 0.2, 0.12, -0.1, -0.11, -0.058 };
+            double[] x_offset = { 0.038, -0.025, 0.039, 0.036, 0.037, 0.034, 0.042, 0.024, 0.026, 0.1, 0.07, 0.12, -0.1, -0.11, -0.058, 0.071, -0.035 };
+            double[] y_offset = { 0.055, 0.028, 0.039, 0.022, 0.05, 0.045, 0.02, 0.043, 0.013, 0.014, 0.001, 0.011, 0.005, 0.007, 0.005, 0.021 };
 
-            #region HistogramPlot
+            #region HistogramPlot for x offset
 
-            (double[] counts, double[] binEdges) =
+            (double[] xCounts, double[] xBinEdges) =
                 ScottPlot.Statistics.Common.Histogram(
-                    values: values,
-                    min: values.Min(),
-                    max: values.Max() + 0.01,
+                    values: x_offset,
+                    min: x_offset.Min(),
+                    max: x_offset.Max() + 0.01,
                     binSize: 0.01);
-            double[] leftEdges = binEdges.Take(binEdges.Length - 1).ToArray();
+            double[] xLeftEdges = xBinEdges.Take(xBinEdges.Length - 1).ToArray();
 
-            _barPlot = FormsPlotHistogram.Plot.AddLollipop(values: counts, positions: leftEdges);
-            _barPlot.BarWidth = 0.001;
-            _barPlot.ShowValuesAboveBars = true;
-
-            #endregion
-
-            #region Vline
-
-            VLine vlineMean = FormsPlotHistogram.Plot.AddVerticalLine(x: values.Average(), color: Color.Red, width: 0.01F, style: LineStyle.Solid, label: "平均值");
-            vlineMean.PositionLabelBackground = Color.Red;
-            vlineMean.PositionFormatter = x => $"{x:0.###}";
-            vlineMean.PositionLabel = true;
-            VLine vlineMin = FormsPlotHistogram.Plot.AddVerticalLine(x: values.Min(), color: Color.Gray, width: 0.01F, style: LineStyle.Dash, label: "最小/最大值");
-            vlineMin.PositionLabelBackground = Color.Gray;
-            vlineMin.PositionFormatter = x => $"{x:0.###}";
-            vlineMin.PositionLabel = true;
-            VLine vlineMax = FormsPlotHistogram.Plot.AddVerticalLine(x: values.Max(), color: Color.Gray, width: 0.01F, style: LineStyle.Dash);
-            vlineMax.PositionLabelBackground = Color.Gray;
-            vlineMax.PositionLabel = true;
-            vlineMax.PositionFormatter = x => $"{x:0.###}";
+            _lollipopPlotX = FormsPlotHistogram.Plot.AddLollipop(values: xCounts, positions: xLeftEdges, color: Color.Green);
+            _lollipopPlotX.Label = "x 偏移值";
+            _lollipopPlotX.BarWidth = 0.001;
+            _lollipopPlotX.ShowValuesAboveBars = true;
 
             #endregion
 
-            FormsPlotHistogram.Plot.Legend(location: Alignment.UpperLeft);
+            #region HistogramPlot for y offset
+
+            (double[] yCounts, double[] yBinEdges) =
+                ScottPlot.Statistics.Common.Histogram(
+                    values: y_offset,
+                    min: y_offset.Min(),
+                    max: y_offset.Max() + 0.01,
+                    binSize: 0.01);
+            double[] yLeftEdges = yBinEdges.Take(yBinEdges.Length - 1).ToArray();
+
+            _lollopopPlotY = FormsPlotHistogram.Plot.AddLollipop(values: yCounts, positions: yLeftEdges, color: Color.Blue);
+            _lollopopPlotY.Label = "y 偏移值";
+            _lollopopPlotY.BarWidth = 0.001;
+            _lollopopPlotY.ShowValuesAboveBars = true;
+
+            #endregion
+
+            #region Vline for x offset
+
+            VLine xVlineMean = FormsPlotHistogram.Plot.AddVerticalLine(
+                x: x_offset.Average(),
+                color: Color.Green,
+                width: 0.01F,
+                style: LineStyle.Dot,
+                label: $"x 偏移平均值( {x_offset.Average():0.###} mm)");
+            xVlineMean.PositionLabelBackground = Color.Green;
+            xVlineMean.PositionFormatter = x => $"{x:0.###}";
+            //xVlineMean.PositionLabel = true;
+            //VLine xVlineMin = FormsPlotHistogram.Plot.AddVerticalLine(x: x_offset.Min(), color: Color.Gray, width: 0.01F, style: LineStyle.Dash, label: "最小/最大值");
+            //xVlineMin.PositionLabelBackground = Color.Gray;
+            //xVlineMin.PositionFormatter = x => $"{x:0.###}";
+            //xVlineMin.PositionLabel = true;
+            //VLine xVlineMax = FormsPlotHistogram.Plot.AddVerticalLine(x: x_offset.Max(), color: Color.Gray, width: 0.01F, style: LineStyle.Dash);
+            //xVlineMax.PositionLabelBackground = Color.Gray;
+            //xVlineMax.PositionLabel = true;
+            //xVlineMax.PositionFormatter = x => $"{x:0.###}";
+
+            #endregion
+
+            #region Vline for y offset
+
+            VLine yVlineMean = FormsPlotHistogram.Plot.AddVerticalLine(
+                x: y_offset.Average(),
+                color: Color.Blue,
+                width: 0.01F,
+                style: LineStyle.Dot,
+                label: $"y 偏移平均值( {y_offset.Average():0.###} mm)");
+            yVlineMean.PositionLabelBackground = Color.Blue;
+            yVlineMean.PositionFormatter = x => $"{x:0.###}";
+            //yVlineMean.PositionLabel = true;
+            //VLine yVlineMin = FormsPlotHistogram.Plot.AddVerticalLine(x: y_offset.Min(), color: Color.Gray, width: 0.01F, style: LineStyle.Dash, label: "最小/最大值");
+            //yVlineMin.PositionLabelBackground = Color.Gray;
+            //yVlineMin.PositionFormatter = x => $"{x:0.###}";
+            //yVlineMin.PositionLabel = true;
+            //VLine yVlineMax = FormsPlotHistogram.Plot.AddVerticalLine(x: y_offset.Max(), color: Color.Gray, width: 0.01F, style: LineStyle.Dash);
+            //yVlineMax.PositionLabelBackground = Color.Gray;
+            //yVlineMax.PositionLabel = true;
+            //yVlineMax.PositionFormatter = x => $"{x:0.###}";
+
+            #endregion
+
+            Legend legend = FormsPlotHistogram.Plot.Legend(location: Alignment.UpperLeft);
+            legend.FontSize = 16;
 
             // 限制 x、y 軸刻度的上、下限。
-            FormsPlotHistogram.Plot.SetAxisLimits(yMin: 0, yMax: counts.Max() * 1.3);
+            double xCountsMax = xCounts.Max();
+            double yCountsMax = yCounts.Max();
+            FormsPlotHistogram.Plot.SetAxisLimits(yMin: 0, yMax: (xCountsMax > yCountsMax ? xCountsMax : yCountsMax) * 1.3);
             FormsPlotHistogram.Refresh();
         }
 
