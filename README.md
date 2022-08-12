@@ -6,4 +6,4 @@ A windows application demo ScottPlot.
 
 ## ScreenShot
 
-<div align=center><img src="./doc/demo.png" alt="demo.png"/></div>
+<div align=center><img src="./doc/demo.gif" alt="demo.gif"/></div>
