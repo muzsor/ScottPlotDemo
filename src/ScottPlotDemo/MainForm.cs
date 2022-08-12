@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Threading.Tasks;
@@ -7,6 +8,7 @@ using System.Windows.Forms;
 using ScottPlot;
 using ScottPlot.Plottable;
 using ScottPlot.Renderable;
+using ScottPlot.Statistics;
 
 using ScottPlotDemo.Utils;
 
@@ -438,34 +440,78 @@ namespace ScottPlotDemo
 
         private void HistogramPlot()
         {
-            double[] x_offset = { 0.038, -0.025, 0.039, 0.036, 0.037, 0.034, 0.042, 0.024, 0.026, 0.1, 0.07, 0.12, -0.1, -0.11, -0.058, 0.071, -0.035 };
-            double[] y_offset = { 0.055, 0.028, 0.039, 0.022, 0.05, 0.045, 0.02, 0.043, 0.013, 0.014, 0.001, 0.011, 0.005, 0.007, 0.005, 0.021 };
+            double[] xOffset = { 0.038, -0.025, 0.039, 0.036, 0.037, 0.034, 0.042, 0.024, 0.026, 0.1, 0.07, 0.12, -0.1, -0.11, -0.058, 0.071 };
+            double[] yOffset = { 0.055, 0.028, 0.039, 0.022, 0.05, 0.045, 0.02, 0.043, 0.013, 0.014, 0.001, 0.011, 0.005, 0.007, 0.005, 0.021 };
+
+            double xMin = xOffset.Min();
+            double xMax = xOffset.Max();
+
+            double yMin = yOffset.Min();
+            double yMax = yOffset.Max();
 
             #region HistogramPlot for x offset
 
-            (double[] xCounts, double[] xBinEdges) =
-                ScottPlot.Statistics.Common.Histogram(
-                    values: x_offset,
-                    min: x_offset.Min(),
-                    max: x_offset.Max() + 0.01,
-                    binSize: 0.01);
+            //(double[] xCounts, double[] xBinEdges) = Common.Histogram(values: xOffset, min: Math.Round(xMin, 3), max: Math.Round(xMax, 3), binSize: 0.01);
+            //double[] xLeftEdges = xBinEdges.Take(xBinEdges.Length - 1).ToArray();
+
+            var xHistogram = new SortedDictionary<double, int>();
+            foreach (double x in xOffset)
+            {
+                if (xHistogram.ContainsKey(x))
+                {
+                    xHistogram[x]++;
+                }
+                else
+                {
+                    xHistogram[x] = 1;
+                }
+            }
+            var xCountsList = new List<double>();
+            var xBinEdgesList = new List<double>();
+            foreach (KeyValuePair<double, int> pair in xHistogram)
+            {
+                xCountsList.Add(pair.Value);
+                xBinEdgesList.Add(pair.Key);
+            }
+            xBinEdgesList.Add(0);
+            double[] xCounts = xCountsList.ToArray();
+            double[] xBinEdges = xBinEdgesList.ToArray();
             double[] xLeftEdges = xBinEdges.Take(xBinEdges.Length - 1).ToArray();
 
             _lollipopPlotX = FormsPlotHistogram.Plot.AddLollipop(values: xCounts, positions: xLeftEdges, color: Color.Green);
             _lollipopPlotX.Label = "x 偏移值";
             _lollipopPlotX.BarWidth = 0.001;
-            _lollipopPlotX.ShowValuesAboveBars = true;
+            //_lollipopPlotX.ShowValuesAboveBars = true;
 
             #endregion
 
             #region HistogramPlot for y offset
 
-            (double[] yCounts, double[] yBinEdges) =
-                ScottPlot.Statistics.Common.Histogram(
-                    values: y_offset,
-                    min: y_offset.Min(),
-                    max: y_offset.Max() + 0.01,
-                    binSize: 0.01);
+            //(double[] yCounts, double[] yBinEdges) = Common.Histogram(values: yOffset, min: yMin, max: yMax, binSize: 0.01);
+            //double[] yLeftEdges = yBinEdges.Take(yBinEdges.Length - 1).ToArray();
+
+            var yHistogram = new SortedDictionary<double, int>();
+            foreach (double y in yOffset)
+            {
+                if (yHistogram.ContainsKey(y))
+                {
+                    yHistogram[y]++;
+                }
+                else
+                {
+                    yHistogram[y] = 1;
+                }
+            }
+            var yCountsList = new List<double>();
+            var yBinEdgesList = new List<double>();
+            foreach (KeyValuePair<double, int> pair in yHistogram)
+            {
+                yCountsList.Add(pair.Value);
+                yBinEdgesList.Add(pair.Key);
+            }
+            yBinEdgesList.Add(0);
+            double[] yCounts = yCountsList.ToArray();
+            double[] yBinEdges = yBinEdgesList.ToArray();
             double[] yLeftEdges = yBinEdges.Take(yBinEdges.Length - 1).ToArray();
 
             _lollopopPlotY = FormsPlotHistogram.Plot.AddLollipop(values: yCounts, positions: yLeftEdges, color: Color.Blue);
@@ -477,20 +523,22 @@ namespace ScottPlotDemo
 
             #region Vline for x offset
 
+            double xAvg = xOffset.Average();
             VLine xVlineMean = FormsPlotHistogram.Plot.AddVerticalLine(
-                x: x_offset.Average(),
+                x: xAvg,
                 color: Color.Green,
                 width: 0.01F,
                 style: LineStyle.Dot,
-                label: $"x 偏移平均值( {x_offset.Average():0.###} mm)");
+                label: $"x 偏移平均值( {xAvg:0.###} mm)");
             xVlineMean.PositionLabelBackground = Color.Green;
             xVlineMean.PositionFormatter = x => $"{x:0.###}";
+
             //xVlineMean.PositionLabel = true;
-            //VLine xVlineMin = FormsPlotHistogram.Plot.AddVerticalLine(x: x_offset.Min(), color: Color.Gray, width: 0.01F, style: LineStyle.Dash, label: "最小/最大值");
+            //VLine xVlineMin = FormsPlotHistogram.Plot.AddVerticalLine(x: xMin, color: Color.Green, width: 0.01F, style: LineStyle.Dash, label: "x 偏移最小/最大值");
             //xVlineMin.PositionLabelBackground = Color.Gray;
             //xVlineMin.PositionFormatter = x => $"{x:0.###}";
             //xVlineMin.PositionLabel = true;
-            //VLine xVlineMax = FormsPlotHistogram.Plot.AddVerticalLine(x: x_offset.Max(), color: Color.Gray, width: 0.01F, style: LineStyle.Dash);
+            //VLine xVlineMax = FormsPlotHistogram.Plot.AddVerticalLine(x: xMax, color: Color.Green, width: 0.01F, style: LineStyle.Dash);
             //xVlineMax.PositionLabelBackground = Color.Gray;
             //xVlineMax.PositionLabel = true;
             //xVlineMax.PositionFormatter = x => $"{x:0.###}";
@@ -499,23 +547,57 @@ namespace ScottPlotDemo
 
             #region Vline for y offset
 
+            double yAvg = yOffset.Average();
             VLine yVlineMean = FormsPlotHistogram.Plot.AddVerticalLine(
-                x: y_offset.Average(),
+                x: yAvg,
                 color: Color.Blue,
                 width: 0.01F,
                 style: LineStyle.Dot,
-                label: $"y 偏移平均值( {y_offset.Average():0.###} mm)");
+                label: $"y 偏移平均值( {yAvg:0.###} mm)");
             yVlineMean.PositionLabelBackground = Color.Blue;
             yVlineMean.PositionFormatter = x => $"{x:0.###}";
+
             //yVlineMean.PositionLabel = true;
-            //VLine yVlineMin = FormsPlotHistogram.Plot.AddVerticalLine(x: y_offset.Min(), color: Color.Gray, width: 0.01F, style: LineStyle.Dash, label: "最小/最大值");
+            //VLine yVlineMin = FormsPlotHistogram.Plot.AddVerticalLine(x: yMin, color: Color.Gray, width: 0.01F, style: LineStyle.Dash, label: "最小/最大值");
             //yVlineMin.PositionLabelBackground = Color.Gray;
             //yVlineMin.PositionFormatter = x => $"{x:0.###}";
             //yVlineMin.PositionLabel = true;
-            //VLine yVlineMax = FormsPlotHistogram.Plot.AddVerticalLine(x: y_offset.Max(), color: Color.Gray, width: 0.01F, style: LineStyle.Dash);
+            //VLine yVlineMax = FormsPlotHistogram.Plot.AddVerticalLine(x: yMax, color: Color.Gray, width: 0.01F, style: LineStyle.Dash);
             //yVlineMax.PositionLabelBackground = Color.Gray;
             //yVlineMax.PositionLabel = true;
             //yVlineMax.PositionFormatter = x => $"{x:0.###}";
+
+            #endregion
+
+            #region Text for x offet
+
+            // 文字在指定位置。
+            Text xMinText = FormsPlotHistogram.Plot.AddText($"{xMin:0.###}", xMin, xCounts[0], size: 14, color: Color.Green);
+            // 點在文字的左下角。
+            xMinText.Alignment = Alignment.UpperLeft;
+            xMinText.Font.Bold = true;
+
+            // 文字在指定位置。
+            Text xMaxText = FormsPlotHistogram.Plot.AddText($"{xMax:0.###}", xMax, xCounts[xCounts.Length - 1], size: 14, color: Color.Green);
+            // 點在文字的左下角。
+            xMaxText.Alignment = Alignment.UpperLeft;
+            xMaxText.Font.Bold = true;
+
+            #endregion
+
+            #region Text for y offet
+
+            // 文字在指定位置。
+            Text yMinText = FormsPlotHistogram.Plot.AddText($"{yMin:0.###}", yMin, yCounts[0], size: 14, color: Color.Blue);
+            // 點在文字的左下角。
+            yMinText.Alignment = Alignment.UpperLeft;
+            yMinText.Font.Bold = true;
+
+            // 文字在指定位置。
+            Text yMaxText = FormsPlotHistogram.Plot.AddText($"{yMax:0.###}", yMax, yCounts[yCounts.Length - 1], size: 14, color: Color.Blue);
+            // 點在文字的左下角。
+            yMaxText.Alignment = Alignment.UpperLeft;
+            yMaxText.Font.Bold = true;
 
             #endregion
 
