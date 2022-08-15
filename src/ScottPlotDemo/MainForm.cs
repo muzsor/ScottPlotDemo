@@ -429,10 +429,6 @@ namespace ScottPlotDemo
 
         #region Histogram
 
-        private BarPlot _barPlotX;
-
-        private BarPlot _barPlotY;
-
         private void FormsPlotHistogramInitialize()
         {
             FormsPlotHistogramX.Plot.Title("x 貼合偏移");
@@ -456,13 +452,13 @@ namespace ScottPlotDemo
 
             #region HistogramPlot
 
-            (double[] xCounts, double[] xBinEdges) = Common.Histogram(values: xOffset, min: xStats.Min, max: xStats.Max, binSize: 0.01);
+            (double[] xCounts, double[] xBinEdges) = Common.Histogram(values: xOffset, min: -0.15, max: 0.15, binSize: 0.01);
             double[] xLeftEdges = xBinEdges.Take(xBinEdges.Length - 1).ToArray();
 
-            _barPlotX = FormsPlotHistogramX.Plot.AddBar(values: xCounts, positions: xLeftEdges, color: Color.Green);
-            _barPlotX.Label = "x 偏移值";
-            _barPlotX.BarWidth = 0.01;
-            _barPlotX.ShowValuesAboveBars = true;
+            BarPlot barPlotX = FormsPlotHistogramX.Plot.AddBar(values: xCounts, positions: xLeftEdges, color: Color.Green);
+            barPlotX.Label = "x 偏移值";
+            barPlotX.BarWidth = 0.01;
+            barPlotX.ShowValuesAboveBars = true;
 
             double[] xSmoothEdges = DataGen.Range(start: xBinEdges.First(), stop: xBinEdges.Last(), step: 0.001, includeStop: true);
             double[] xSmoothDensities = Common.ProbabilityDensity(values: xOffset, xs: xSmoothEdges, percent: true);
@@ -479,16 +475,33 @@ namespace ScottPlotDemo
 
             VLine xVlineMean = FormsPlotHistogramX.Plot.AddVerticalLine(
                 x: xStats.Mean,
-                color: Color.Green,
+                color: Color.Red,
                 width: 0.01F,
                 style: LineStyle.Solid,
                 label: $"平均值( {xStats.Mean:0.###} mm)");
             xVlineMean.PositionLabelBackground = xVlineMean.Color;
             xVlineMean.PositionFormatter = x => $"{x:0.###}";
             xVlineMean.PositionLabel = true;
+            VLine xMin = FormsPlotHistogramX.Plot.AddVerticalLine(
+                x: xStats.Min,
+                color: Color.Red,
+                width: 1,
+                style: LineStyle.Dash,
+                label: "實際最小/最大值");
+            xMin.PositionLabelBackground = xMin.Color;
+            xMin.PositionLabel = true;
+            xMin.PositionFormatter = x => $"{x:0.###}";
+            VLine xMax = FormsPlotHistogramX.Plot.AddVerticalLine(
+                x: xStats.Max,
+                color: Color.Red,
+                width: 1,
+                style: LineStyle.Dash);
+            xMax.PositionLabelBackground = xMax.Color;
+            xMax.PositionLabel = true;
+            xMax.PositionFormatter = x => $"{x:0.###}";
             VLine xVline1SD1 = FormsPlotHistogramX.Plot.AddVerticalLine(
                 x: xStats.Mean - xStats.StDev,
-                color: Color.Green,
+                color: Color.Black,
                 width: 0.01F,
                 style: LineStyle.DashDot,
                 label: "1 SD");
@@ -497,7 +510,7 @@ namespace ScottPlotDemo
             xVline1SD1.PositionLabel = true;
             VLine xVline1SD2 = FormsPlotHistogramX.Plot.AddVerticalLine(
                 x: xStats.Mean + xStats.StDev,
-                color: Color.Green,
+                color: Color.Black,
                 width: 0.01F,
                 style: LineStyle.DashDot);
             xVline1SD2.PositionLabelBackground = xVline1SD2.Color;
@@ -505,7 +518,7 @@ namespace ScottPlotDemo
             xVline1SD2.PositionLabel = true;
             VLine xVline2SD1 = FormsPlotHistogramX.Plot.AddVerticalLine(
                 x: xStats.Mean - (xStats.StDev * 2),
-                color: Color.Green,
+                color: Color.Black,
                 width: 0.01F,
                 style: LineStyle.Dash,
                 label: "2 SD");
@@ -514,29 +527,29 @@ namespace ScottPlotDemo
             xVline2SD1.PositionFormatter = x => $"{x:0.###}";
             VLine xVline2SD2 = FormsPlotHistogramX.Plot.AddVerticalLine(
                 x: xStats.Mean + (xStats.StDev * 2),
-                color: Color.Green,
+                color: Color.Black,
                 width: 0.01F,
                 style: LineStyle.Dash);
             xVline2SD2.PositionLabelBackground = xVline2SD2.Color;
             xVline2SD2.PositionLabel = true;
             xVline2SD2.PositionFormatter = x => $"{x:0.###}";
-            VLine xMin = FormsPlotHistogramX.Plot.AddVerticalLine(
-                x: xStats.Min,
-                color: Color.Red,
+            VLine offsetMin = FormsPlotHistogramX.Plot.AddVerticalLine(
+                x: -0.15,
+                color: Color.Gray,
                 width: 1,
                 style: LineStyle.Dot,
-                "min/max");
-            xMin.PositionLabelBackground = xMin.Color;
-            xMin.PositionLabel = true;
-            xMin.PositionFormatter = x => $"{x:0.###}";
-            VLine xMax = FormsPlotHistogramX.Plot.AddVerticalLine(
-                x: xStats.Max,
-                color: Color.Red,
+                label: "規格上/下限值");
+            offsetMin.PositionLabelBackground = offsetMin.Color;
+            offsetMin.PositionLabel = true;
+            offsetMin.PositionFormatter = x => $"{x:0.###}";
+            VLine offsetMax = FormsPlotHistogramX.Plot.AddVerticalLine(
+                x: +0.15,
+                color: Color.Gray,
                 width: 1,
                 style: LineStyle.Dot);
-            xMax.PositionLabelBackground = xMax.Color;
-            xMax.PositionLabel = true;
-            xMax.PositionFormatter = x => $"{x:0.###}";
+            offsetMax.PositionLabelBackground = offsetMax.Color;
+            offsetMax.PositionLabel = true;
+            offsetMax.PositionFormatter = x => $"{x:0.###}";
 
             #endregion
 
@@ -557,13 +570,13 @@ namespace ScottPlotDemo
 
             #region HistogramPlot
 
-            (double[] yCounts, double[] yBinEdges) = Common.Histogram(values: yOffset, min: yStats.Min, max: yStats.Max, binSize: 0.01);
+            (double[] yCounts, double[] yBinEdges) = Common.Histogram(values: yOffset, min: -0.15, max: 0.15, binSize: 0.01);
             double[] yLeftEdges = yBinEdges.Take(yBinEdges.Length - 1).ToArray();
 
-            _barPlotY = FormsPlotHistogramY.Plot.AddBar(values: yCounts, positions: yLeftEdges, color: Color.Blue);
-            _barPlotY.Label = "y 偏移值";
-            _barPlotY.BarWidth = 0.01;
-            _barPlotY.ShowValuesAboveBars = true;
+            BarPlot barPlotY = FormsPlotHistogramY.Plot.AddBar(values: yCounts, positions: yLeftEdges, color: Color.Blue);
+            barPlotY.Label = "y 偏移值";
+            barPlotY.BarWidth = 0.01;
+            barPlotY.ShowValuesAboveBars = true;
 
             double[] ySmoothEdges = DataGen.Range(start: yBinEdges.First(), stop: yBinEdges.Last(), step: 0.001, includeStop: true);
             double[] ySmoothDensities = Common.ProbabilityDensity(values: yOffset, xs: ySmoothEdges, percent: true);
@@ -578,66 +591,83 @@ namespace ScottPlotDemo
 
             #region Vline
 
-            VLine yVlineMean = FormsPlotHistogramY.Plot.AddVerticalLine(
-                x: yStats.Mean,
-                color: Color.Blue,
-                width: 0.01F,
-                style: LineStyle.Solid,
-                label: $"平均值( {yStats.Mean:0.###} mm)");
-            yVlineMean.PositionLabelBackground = yVlineMean.Color;
-            yVlineMean.PositionFormatter = x => $"{x:0.###}";
-            yVlineMean.PositionLabel = true;
-            VLine yVline1SD1 = FormsPlotHistogramY.Plot.AddVerticalLine(
+            VLine xVlineMean = FormsPlotHistogramY.Plot.AddVerticalLine(
+               x: yStats.Mean,
+               color: Color.Red,
+               width: 0.01F,
+               style: LineStyle.Solid,
+               label: $"平均值( {yStats.Mean:0.###} mm)");
+            xVlineMean.PositionLabelBackground = xVlineMean.Color;
+            xVlineMean.PositionFormatter = x => $"{x:0.###}";
+            xVlineMean.PositionLabel = true;
+            VLine xMin = FormsPlotHistogramY.Plot.AddVerticalLine(
+                x: yStats.Min,
+                color: Color.Red,
+                width: 1,
+                style: LineStyle.Dash,
+                label: "實際最小/最大值");
+            xMin.PositionLabelBackground = xMin.Color;
+            xMin.PositionLabel = true;
+            xMin.PositionFormatter = x => $"{x:0.###}";
+            VLine xMax = FormsPlotHistogramY.Plot.AddVerticalLine(
+                x: yStats.Max,
+                color: Color.Red,
+                width: 1,
+                style: LineStyle.Dash);
+            xMax.PositionLabelBackground = xMax.Color;
+            xMax.PositionLabel = true;
+            xMax.PositionFormatter = x => $"{x:0.###}";
+            VLine xVline1SD1 = FormsPlotHistogramY.Plot.AddVerticalLine(
                 x: yStats.Mean - yStats.StDev,
-                color: Color.Blue,
+                color: Color.Black,
                 width: 0.01F,
                 style: LineStyle.DashDot,
                 label: "1 SD");
-            yVline1SD1.PositionLabelBackground = yVline1SD1.Color;
-            yVline1SD1.PositionFormatter = x => $"{x:0.###}";
-            yVline1SD1.PositionLabel = true;
+            xVline1SD1.PositionLabelBackground = xVline1SD1.Color;
+            xVline1SD1.PositionFormatter = x => $"{x:0.###}";
+            xVline1SD1.PositionLabel = true;
             VLine xVline1SD2 = FormsPlotHistogramY.Plot.AddVerticalLine(
                 x: yStats.Mean + yStats.StDev,
-                color: Color.Blue,
+                color: Color.Black,
                 width: 0.01F,
                 style: LineStyle.DashDot);
             xVline1SD2.PositionLabelBackground = xVline1SD2.Color;
             xVline1SD2.PositionFormatter = x => $"{x:0.###}";
             xVline1SD2.PositionLabel = true;
-            VLine yVline2SD1 = FormsPlotHistogramY.Plot.AddVerticalLine(
+            VLine xVline2SD1 = FormsPlotHistogramY.Plot.AddVerticalLine(
                 x: yStats.Mean - (yStats.StDev * 2),
-                color: Color.Blue,
+                color: Color.Black,
                 width: 0.01F,
                 style: LineStyle.Dash,
                 label: "2 SD");
-            yVline2SD1.PositionLabelBackground = yVline2SD1.Color;
-            yVline2SD1.PositionLabel = true;
-            yVline2SD1.PositionFormatter = x => $"{x:0.###}";
-            VLine yVline2SD2 = FormsPlotHistogramY.Plot.AddVerticalLine(
+            xVline2SD1.PositionLabelBackground = xVline2SD1.Color;
+            xVline2SD1.PositionLabel = true;
+            xVline2SD1.PositionFormatter = x => $"{x:0.###}";
+            VLine xVline2SD2 = FormsPlotHistogramY.Plot.AddVerticalLine(
                 x: yStats.Mean + (yStats.StDev * 2),
-                color: Color.Blue,
+                color: Color.Black,
                 width: 0.01F,
                 style: LineStyle.Dash);
-            yVline2SD2.PositionLabelBackground = yVline2SD2.Color;
-            yVline2SD2.PositionLabel = true;
-            yVline2SD2.PositionFormatter = x => $"{x:0.###}";
-            VLine yMin = FormsPlotHistogramY.Plot.AddVerticalLine(
-                x: yStats.Min,
-                color: Color.Red,
+            xVline2SD2.PositionLabelBackground = xVline2SD2.Color;
+            xVline2SD2.PositionLabel = true;
+            xVline2SD2.PositionFormatter = x => $"{x:0.###}";
+            VLine offsetMin = FormsPlotHistogramY.Plot.AddVerticalLine(
+                x: -0.15,
+                color: Color.Gray,
                 width: 1,
                 style: LineStyle.Dot,
-                "min/max");
-            yMin.PositionLabelBackground = yMin.Color;
-            yMin.PositionLabel = true;
-            yMin.PositionFormatter = x => $"{x:0.###}";
-            VLine yMax = FormsPlotHistogramY.Plot.AddVerticalLine(
-                x: yStats.Max,
-                color: Color.Red,
+                label: "規格上/下限值");
+            offsetMin.PositionLabelBackground = offsetMin.Color;
+            offsetMin.PositionLabel = true;
+            offsetMin.PositionFormatter = x => $"{x:0.###}";
+            VLine offsetMax = FormsPlotHistogramY.Plot.AddVerticalLine(
+                x: +0.15,
+                color: Color.Gray,
                 width: 1,
                 style: LineStyle.Dot);
-            yMax.PositionLabelBackground = yMax.Color;
-            yMax.PositionLabel = true;
-            yMax.PositionFormatter = x => $"{x:0.###}";
+            offsetMax.PositionLabelBackground = offsetMax.Color;
+            offsetMax.PositionLabel = true;
+            offsetMax.PositionFormatter = x => $"{x:0.###}";
 
             #endregion
 
