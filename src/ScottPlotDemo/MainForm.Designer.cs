@@ -37,7 +37,8 @@
             this.panel1 = new System.Windows.Forms.Panel();
             this.FormsPlotScatter = new ScottPlot.FormsPlot();
             this.ResetButton = new System.Windows.Forms.Button();
-            this.FormsPlotHistogram = new ScottPlot.FormsPlot();
+            this.FormsPlotHistogramX = new ScottPlot.FormsPlot();
+            this.FormsPlotHistogramY = new ScottPlot.FormsPlot();
             ((System.ComponentModel.ISupportInitialize)(this.DataUpdateTimer)).BeginInit();
             this.TableLayoutPanel.SuspendLayout();
             this.panel1.SuspendLayout();
@@ -80,9 +81,10 @@
             this.TableLayoutPanel.ColumnCount = 2;
             this.TableLayoutPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
             this.TableLayoutPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
+            this.TableLayoutPanel.Controls.Add(this.FormsPlotHistogramY, 0, 1);
             this.TableLayoutPanel.Controls.Add(this.panel1, 1, 0);
             this.TableLayoutPanel.Controls.Add(this.FormsPlotLiveSignal, 0, 0);
-            this.TableLayoutPanel.Controls.Add(this.FormsPlotHistogram, 0, 1);
+            this.TableLayoutPanel.Controls.Add(this.FormsPlotHistogramX, 0, 1);
             this.TableLayoutPanel.Dock = System.Windows.Forms.DockStyle.Fill;
             this.TableLayoutPanel.Location = new System.Drawing.Point(0, 0);
             this.TableLayoutPanel.Margin = new System.Windows.Forms.Padding(0);
@@ -127,14 +129,23 @@
             this.ResetButton.UseVisualStyleBackColor = true;
             this.ResetButton.Click += new System.EventHandler(this.ResetButton_Click);
             // 
-            // FormsPlotHistogram
+            // FormsPlotHistogramX
             // 
-            this.FormsPlotHistogram.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.FormsPlotHistogram.Location = new System.Drawing.Point(1, 381);
-            this.FormsPlotHistogram.Margin = new System.Windows.Forms.Padding(0);
-            this.FormsPlotHistogram.Name = "FormsPlotHistogram";
-            this.FormsPlotHistogram.Size = new System.Drawing.Size(490, 379);
-            this.FormsPlotHistogram.TabIndex = 5;
+            this.FormsPlotHistogramX.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.FormsPlotHistogramX.Location = new System.Drawing.Point(1, 381);
+            this.FormsPlotHistogramX.Margin = new System.Windows.Forms.Padding(0);
+            this.FormsPlotHistogramX.Name = "FormsPlotHistogramX";
+            this.FormsPlotHistogramX.Size = new System.Drawing.Size(490, 379);
+            this.FormsPlotHistogramX.TabIndex = 5;
+            // 
+            // FormsPlotHistogramY
+            // 
+            this.FormsPlotHistogramY.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.FormsPlotHistogramY.Location = new System.Drawing.Point(492, 381);
+            this.FormsPlotHistogramY.Margin = new System.Windows.Forms.Padding(0);
+            this.FormsPlotHistogramY.Name = "FormsPlotHistogramY";
+            this.FormsPlotHistogramY.Size = new System.Drawing.Size(491, 379);
+            this.FormsPlotHistogramY.TabIndex = 6;
             // 
             // MainForm
             // 
@@ -168,7 +179,8 @@
         private System.Windows.Forms.Panel panel1;
         private ScottPlot.FormsPlot FormsPlotScatter;
         private System.Windows.Forms.Button ResetButton;
-        private ScottPlot.FormsPlot FormsPlotHistogram;
+        private ScottPlot.FormsPlot FormsPlotHistogramX;
+        private ScottPlot.FormsPlot FormsPlotHistogramY;
     }
 }
 
